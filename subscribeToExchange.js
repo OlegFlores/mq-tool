@@ -16,7 +16,7 @@ module.exports = async function subscribeToExchange(channel, {
     if (msg !== null) {
       try {
         const newEvent = JSON.parse(msg.content.toString());
-        console.trace(`New message received in queue '${queue}'`, newEvent);
+        console.debug(`New message received in queue '${queue}'`, newEvent);
         return await handleEvent(newEvent, () => {
           channel.ack(msg);
         });
