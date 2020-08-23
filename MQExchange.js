@@ -1,12 +1,10 @@
-const {MQ} = require('../consts');
-
 /**
  * @class MQExchange
  * @property {string} name
  * @property {string} type
  * @property {string} defaultRoutingKey
  * @property {boolean} durable
- * @type {ExchangeHostCommands}
+ * @type {MQExchange}
  */
 module.exports = class MQExchange {
 
