@@ -6,10 +6,11 @@ module.exports = async function subscribeToExchange(channel, {
   queueName,
   messageTtl,
   routingKey,
-  autoAck = false
+  autoAck = false,
+  durable = false
 }, handleEvent) {
 
-  await channel.assertExchange(exchangeName, exchangeType, {durable: true});
+  await channel.assertExchange(exchangeName, exchangeType, {durable: durable});
   const queue = (await channel.assertQueue(queueName, {exclusive: false, messageTtl})).queue;
   await channel.bindQueue(queue, exchangeName, routingKey);
   return channel.consume(queue, async (msg) => {
