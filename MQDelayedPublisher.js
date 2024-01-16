@@ -8,6 +8,7 @@ const MS_IN_SEC = 1000;
 class MQDelayedPublisher {
   constructor(
     channel, // amqplib channel object
+    logger = null,
     {
       delayExchangeName = 'delay-exchange',
       delayExchangeOptions = { durable: true, autoDelete: false },
@@ -16,6 +17,7 @@ class MQDelayedPublisher {
     } = {}
   ) {
     this.channel = channel
+    this.logger = logger
 
     this.delayExchangeName = delayExchangeName
     this.delayExchangeOptions = delayExchangeOptions
@@ -62,13 +64,23 @@ class MQDelayedPublisher {
    * @returns {Promise<*>|*}
    */
   publish(dataToPublish, routingKey, delay, options = {}) {
-    if (!this.delays[delay]) throw Error(`Delay ${delay} is not configured`)
+    try {
+      if (!this.delays[delay]) throw Error(`Delay ${delay} is not configured`)
 
-    // setup "delay" header
-    if (!options.headers) options.headers = {}
-    options.headers.delay = this.delays[delay] // time in ms is used as a delay header value
+      // setup "delay" header
+      if (!options.headers) options.headers = {}
+      options.headers.delay = this.delays[delay] // time in ms is used as a delay header value
 
-    return this.channel.publish(this.delayExchangeName, routingKey, Buffer.from(JSON.stringify(dataToPublish)), options)
+      return this.channel.publish(this.delayExchangeName, routingKey, Buffer.from(JSON.stringify(dataToPublish)), options)
+    } catch(ex) {
+      if(this.logger) {
+        this.logger.error('Could not send dataToPublish:', dataToPublish);
+        this.logger.error(ex);
+      } else {
+        console.error('Could not send dataToPublish:', dataToPublish);
+        console.error(ex);
+      }
+    }
   }
 
   _getName(delay) {
