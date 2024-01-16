@@ -39,7 +39,7 @@ class MQDelayedPublisher {
         if (!Number.isFinite(delay) || delay <= 0) throw Error(`Delay ${delay} is not an integer`)
 
         const delayInMs = delay * MS_IN_SEC
-        await this.channel.assertQueue(this.getName(delay), {
+        await this.channel.assertQueue(this._getName(delay), {
           ...this.delayQueueOptions,
           messageTtl: delayInMs
         })
@@ -53,14 +53,22 @@ class MQDelayedPublisher {
     )
   }
 
-  sendWithDelay(destinationQueue, content, delay, options = {}) {
+  /**
+   *
+   * @param dataToPublish object to send (will be serialized)
+   * @param routingKey routing key (the name of the queue)
+   * @param delay delay in seconds (supported range is defined when called this.setupDelayedTopology(delays))
+   * @param options optional headers (no need to pass anything specific to enable delaying)
+   * @returns {Promise<*>|*}
+   */
+  publish(dataToPublish, routingKey, delay, options = {}) {
     if (!this.delays[delay]) throw Error(`Delay ${delay} is not configured`)
 
     // setup "delay" header
     if (!options.headers) options.headers = {}
-    options.headers.delay = this.delays[delay]
+    options.headers.delay = this.delays[delay] // time in ms is used as a delay header value
 
-    return this.channel.publish(this.delayExchangeName, destinationQueue, Buffer.from(JSON.stringify(content)), options)
+    return this.channel.publish(this.delayExchangeName, routingKey, Buffer.from(JSON.stringify(dataToPublish)), options)
   }
 
   _getName(delay) {
