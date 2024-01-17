@@ -11,9 +11,9 @@ class MQDelayedPublisher {
     logger = null,
     {
       delayExchangeName = 'delay-exchange',
-      delayExchangeOptions = { durable: true, autoDelete: false },
+      delayExchangeOptions = { durable: false, autoDelete: false },
       delayQueuePrefix = 'delay-queue',
-      delayQueueOptions = { durable: true }
+      delayQueueOptions = { durable: false }
     } = {}
   ) {
     this.channel = channel
